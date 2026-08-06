@@ -23,7 +23,7 @@ export async function loader() {
 }
 
 // La extension usa POST con text/plain para evitar el preflight de CORS.
-// POS agrega el header Authorization automaticamente en URLs relativas.
+// La extension manda token y customerId en el body via POST.
 export async function action({request}) {
   const headers = corsHeaders();
 
@@ -32,9 +32,7 @@ export async function action({request}) {
   }
 
   try {
-    const auth = request.headers.get('Authorization') ?? '';
-    const token = auth.replace(/^Bearer /i, '');
-    const {customerId} = JSON.parse(await request.text());
+    const {token, customerId} = JSON.parse(await request.text());
 
     console.log('customer-hold: token?', Boolean(token), 'customerId:', customerId);
 
