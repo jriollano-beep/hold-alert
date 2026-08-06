@@ -1,5 +1,5 @@
 const TTL_MS = 5 * 60 * 1000; // cache de 5 minutos
-const APP_URL = 'https://plans-vehicles-come-colleagues.trycloudflare.com';
+const APP_URL = 'https://hold-alert.vercel.app';
 
 /**
  * Estados posibles:
@@ -26,13 +26,16 @@ export async function getHoldStatus(customerId) {
   //   // storage vacio o corrupto: seguimos al fetch
   // }
 
-  // 2. Lookup contra el backend.
-  // URL relativa: POS la resuelve contra el application_url de la app
-  // y agrega el header Authorization automaticamente.
+  // 2. Lookup contra el backend en Vercel
   try {
-const res = await fetch(`${APP_URL}/api/customer-hold`);
-    const texto = await res.text();
-    return {status: 'unknown', reason: texto.slice(0, 60)};
+    const token = await shopify.session.getSessionToken();
+    if (!token) return {status: 'unknown', reason: 'Sin token'};
+
+    const res = await fetch(`${APP_URL}/api/customer-hold`, {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain'},
+      body: JSON.stringify({token, customerId}),
+    });
 
     if (!res.ok) return {status: 'unknown', reason: `HTTP ${res.status}`};
 

@@ -2,7 +2,7 @@
 
 client_id = "d6435f92d267884529d31d48898e7f3c"
 name = "hold-alert"
-application_url = "https://example.com"
+application_url = "https://hold-alert.vercel.app"
 embedded = true
 
 [access_scopes]
@@ -45,8 +45,11 @@ api_version = "2026-10"
   topics = [ "app/scopes_update" ]
 
 [auth]
-redirect_urls = [ "https://example.com/api/auth" ]
+redirect_urls = [
+  "https://hold-alert.vercel.app/auth/callback",
+  "https://hold-alert.vercel.app/auth/shopify/callback",
+  "https://hold-alert.vercel.app/api/auth/callback"
+]
 
 [build]
-include_config_on_deploy = true
-automatically_update_urls_on_dev = true
+automatically_update_urls_on_dev = false
