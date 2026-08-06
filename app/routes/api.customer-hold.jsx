@@ -14,8 +14,13 @@ function corsHeaders() {
   };
 }
 
-// GET simple para probar desde el navegador
-export async function loader() {
+// GET simple para probar desde el navegador.
+// Tambien responde al preflight OPTIONS que hace el POS.
+export async function loader({request}) {
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {status: 204, headers: corsHeaders()});
+  }
+
   return Response.json(
     {error: 'missing token', hint: 'la ruta existe'},
     {status: 401, headers: corsHeaders()},

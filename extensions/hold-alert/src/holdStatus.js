@@ -33,7 +33,7 @@ export async function getHoldStatus(customerId) {
 
     const res = await fetch(`${APP_URL}/api/customer-hold`, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'text/plain'},
       body: JSON.stringify({token, customerId}),
     });
 
