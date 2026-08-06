@@ -1,4 +1,4 @@
-const TTL_MS = 5 * 60 * 1000; // cache de 5 minutos
+const TTL_MS = 60 * 1000; // cache de 1 minuto
 const APP_URL = 'https://hold-alert.vercel.app';
 
 /**
@@ -13,18 +13,24 @@ export async function getHoldStatus(customerId) {
 
   const key = `hold:${customerId}`;
 
-  // 1. Cache local con TTL (comentado mientras depuramos)
-  // try {
-  //   const raw = await shopify.storage.get(key);
-  //   if (raw) {
-  //     const cached = JSON.parse(String(raw));
-  //     if (Date.now() - cached.ts < TTL_MS) {
-  //       return {status: cached.status, reason: cached.reason, cached: true};
-  //     }
-  //   }
-  // } catch (_) {
-  //   // storage vacio o corrupto: seguimos al fetch
-  // }
+  // 1. Cache local con TTL
+  try {
+    const raw = await shopify.storage.get(key);
+    if (raw) {
+      const cached = JSON.parse(String(raw));
+      if (Date.now() - cached.ts < TTL_MS) {
+        return {
+          status: cached.status,
+          reason: cached.reason,
+          name: cached.name,
+          email: cached.email,
+          cached: true,
+        };
+      }
+    }
+  } catch (_) {
+    // storage vacio o corrupto: seguimos al fetch
+  }
 
   // 2. Lookup contra el backend en Vercel
   try {
@@ -40,14 +46,20 @@ export async function getHoldStatus(customerId) {
     if (!res.ok) return {status: 'unknown', reason: `HTTP ${res.status}`};
 
     const data = await res.json();
-    const status = data.onHold ? 'hold' : 'ok';
+
+    const result = {
+      status: data.onHold ? 'hold' : 'ok',
+      reason: data.reason,
+      name: data.name,
+      email: data.email,
+    };
 
     await shopify.storage.set(
       key,
-      JSON.stringify({status, reason: data.reason, ts: Date.now()}),
+      JSON.stringify({...result, ts: Date.now()}),
     );
 
-    return {status, reason: data.reason};
+    return result;
   } catch (err) {
     // POS sigue vendiendo offline: no rompas la venta, marca como no verificado
     return {status: 'unknown', reason: String(err?.message ?? err)};

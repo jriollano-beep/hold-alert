@@ -27,8 +27,8 @@ export async function loader({request}) {
   );
 }
 
-// La extension usa POST con text/plain para evitar el preflight de CORS.
-// La extension manda token y customerId en el body via POST.
+// La extension manda token y customerId en el body via POST,
+// con text/plain para evitar el preflight de CORS.
 export async function action({request}) {
   const headers = corsHeaders();
 
@@ -38,8 +38,6 @@ export async function action({request}) {
 
   try {
     const {token, customerId} = JSON.parse(await request.text());
-
-    console.log('customer-hold: token?', Boolean(token), 'customerId:', customerId);
 
     if (!token) {
       return Response.json({error: 'missing token'}, {status: 401, headers});
@@ -57,7 +55,7 @@ export async function action({request}) {
     // `dest` es la tienda, ej. https://mi-tienda.myshopify.com
     const shop = new URL(payload.dest).host;
 
-    // 2. Consultar los tags del cliente con el Admin API
+    // 2. Consultar el cliente con el Admin API
     const {admin} = await unauthenticated.admin(shop);
 
     const response = await admin.graphql(
@@ -67,6 +65,8 @@ export async function action({request}) {
             id
             tags
             note
+            displayName
+            email
           }
         }`,
       {variables: {id: `gid://shopify/Customer/${customerId}`}},
@@ -87,6 +87,8 @@ export async function action({request}) {
       {
         onHold,
         found: true,
+        name: customer.displayName,
+        email: customer.email,
         // La nota del cliente sirve como motivo visible para el cajero
         reason: onHold ? customer.note || undefined : undefined,
       },
@@ -94,9 +96,6 @@ export async function action({request}) {
     );
   } catch (error) {
     console.error('customer-hold error:', error?.message ?? error);
-    return Response.json(
-      {error: 'unauthorized', detail: String(error?.message ?? error)},
-      {status: 401, headers},
-    );
+    return Response.json({error: 'unauthorized'}, {status: 401, headers});
   }
 }
