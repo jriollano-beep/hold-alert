@@ -1,0 +1,30 @@
+api_version = "2026-01"
+
+[[extensions]]
+type = "ui_extension"
+# Change the merchant-facing name of the extension in locales/en.default.json
+name = "Aviso de cuenta en hold"
+uid = "8bbfc305-221a-53b4-d4fb-03c7ed71048af442680a"
+handle = "hold-alert"
+description = "Avisa al cajero cuando el cliente tiene el tag hold"
+
+# module: file that contains your extension’s source code
+# target: location where your extension appears in POS
+
+[extensions.supported_features]
+runs_offline = true
+
+[extensions.capabilities]
+network_access = true
+
+[[extensions.targeting]]
+module = "./src/Tile.jsx"
+target = "pos.home.tile.render"
+
+[[extensions.targeting]]
+module = "./src/Modal.jsx"
+target = "pos.home.modal.render"
+
+[[extensions.targeting]]
+module = "./src/CustomerBlock.jsx"
+target = "pos.customer-details.block.render"
